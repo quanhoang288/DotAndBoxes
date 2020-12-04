@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.util.ArrayList;
-public class Box {
+import java.util.Comparator;
+public class Box implements Comparable<Box>{
     public static final int THRESHOLD = Board.CELL/5;
     public static final int LEFT = 0, RIGHT = 1, TOP = 2, BOT = 3;
     private int left, right, top, bot, row, col, mouseX, mouseY;
@@ -307,7 +308,24 @@ public class Box {
     public String toString() {
         return "Box [row=" + row + ", col=" + col + "]: " + (4 - getNumOfSides());
     }
+    public int compareTo(Box compareBox) {
+        if (this.row < compareBox.getRow()) return 1;
+        if (this.col < compareBox.getCol()) return 1;
+        return 0;
+    }
+    public static Comparator<Box> BoxComparator 
+                          = new Comparator<Box>() {
 
+        public int compare(Box box1, Box box2) {
+        	
+         
+          //ascending order
+          return box1.compareTo(box2);
+          
+          //descending order
+        }
+
+    };
     
 
 

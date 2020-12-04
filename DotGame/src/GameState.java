@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -157,10 +159,14 @@ public class GameState {
     }
     private boolean checkLoop(ArrayList<Box> chain){
         if (chain.size() < 4) return false;
-        Box firstBox = chain.get(0);
-        Box lastBox = chain.get(chain.size() - 1);
-        if (isNeighbor(firstBox, lastBox)) return true;
-        return false;
+        for (Box box: chain){
+            if (getNumNeighbors(box) < 2) return false;
+        }
+        return true;
+        // Box firstBox = chain.get(0);
+        // Box lastBox = chain.get(chain.size() - 1);
+        // if (isNeighbor(firstBox, lastBox)) return true;
+        // return false;
     }
     private boolean checkPossibleLoop(ArrayList<Box> chain){
         return false;
@@ -181,8 +187,8 @@ public class GameState {
     public ArrayList<Box> freeMoves(){
         return freeMoves;
     }
-    public ArrayList<Box> getSingleHandouts(){
-        return null;
+    public ArrayList<ArrayList<Box> >  getSingleHandouts(){
+        return structures.get("handouts");
     }
     public ArrayList<ArrayList<Box> > getDoubleHandouts(){
         return structures.get("doubleHandouts");
@@ -244,21 +250,15 @@ public class GameState {
         // return res;
         return degree > 2;
     }
-    private boolean connectedToStructure(Box box){
+    private int getNumNeighbors(Box box){
+        int cnt = 0;
         ArrayList<Integer> freeSides = box.getFreeSides();
         for (int i = 0; i < freeSides.size(); ++i){
             int curSide = freeSides.get(i);
             Box neighbor = getNeighbor(box, curSide);
-            if (findStructure(neighbor) != null) {
-                System.out.println("Found structure: ");
-                for (Box bx : findStructure(neighbor)){
-                    System.out.println(bx);
-                }
-                System.out.println("-----------------");
-                return true;
-            }
+            if (neighbor != null && neighbor.getNumOfSides() == 2) cnt++;
         }
-        return false;
+        return cnt;
     }
     private void removeFromStructure(ArrayList<Box> structure, Box box){
         if (!inStructure(structure, box)) return;

@@ -7,7 +7,7 @@ public class Board extends JPanel {
     private static final long serialVersionUID = 1L;
     public static final int HEIGHT = 800;
     public static final int WIDTH = (int) (HEIGHT * 0.8);
-    public static final int SIZE = 6; // 3x3 board
+    public static final int SIZE = 5; // 3x3 board
     public static final int CELL = WIDTH / (SIZE + 2); // size of a box
     public static final int MARGIN = HEIGHT - (SIZE + 2) * CELL; // top margin
     public static final int DOT = CELL / 12; // radius of a dot
