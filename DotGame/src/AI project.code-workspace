@@ -4,7 +4,13 @@
 			"path": ".."
 		},
 		{
-			"path": "..\\..\\src"
+			"path": "..\\..\\Chess-master"
+		},
+		{
+			"path": "..\\..\\..\\..\\DotsAndBoxes-master"
+		},
+		{
+			"path": "..\\..\\dot_and_boxes_js"
 		}
 	],
 	"settings": {}

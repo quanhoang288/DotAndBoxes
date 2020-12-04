@@ -10,14 +10,24 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
 
     private static final long serialVersionUID = 1L;
     private Board board;
+    private GameState gamestate;
+    private AI comp;
     private boolean playerTurn;
     private int playerScore, compScore;
-    private boolean isSquareFill, isSideDrawn, running;
+    private boolean isSquareFill, isSideDrawn, running, highlight;
     private Thread thread;
-
+    private int mouseX, mouseY;
     public Game() {
         // playerTurn = Math.random() >= 0.5;
         playerTurn = true;
+        this.mouseX = this.mouseY = -1;
+        initComponent();
+        gamestate = new GameState(board.getBoxes(), playerTurn);
+        comp = new AI(this, board);
+
+        
+    }
+    public void initComponent(){
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
         JMenuItem newGame = new JMenuItem("New Game");
@@ -48,11 +58,102 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
         this.setVisible(true);
         this.start();
     }
-
     public static void main(String[] args) throws Exception {
         new Game();
     }
+    public void processInput(){
+        if (mouseX != -1){
+            board.checkMousePosition(this.mouseX, this.mouseY, this.highlight, this.playerTurn);
+        }
+    }
+    
+    public void update() {
+        // update game state 
+        // AI move
+        // update game state again
+        comp.makeMove();
+        
+        if (isSideDrawn){
+            comp.setDelay(60);
+            Box lastBox = board.getLastBox();
+            if (lastBox != null){
+                //System.out.println(lastBox);
+                gamestate.update(lastBox, lastBox.getLastSide());
+                Box neighbor = board.getNeighbor(lastBox, lastBox.getLastSide());
+                if (neighbor != null){
+                    gamestate.update(neighbor, neighbor.getLastSide());
+                    
+                }
+                    
+            }
+                
+            gamestate.printInfo();
+        } 
+        //if (isSideDrawn) board.setTimeComp(60);
+        if (!isSquareFill && isSideDrawn) {
+            playerTurn = !playerTurn;
 
+        } else if (isSquareFill) {
+            if (playerTurn)
+                playerScore += board.getNumSquaresFilled();
+            else 
+                compScore += board.getNumSquaresFilled();
+            board.setNumSquaresFilled(0);
+
+        }
+        isSideDrawn = false;
+        isSquareFill = false;
+    }
+
+    public void render() {
+        board.repaint();
+    }
+
+    public synchronized void start() {
+        thread = new Thread(this);
+        thread.start();
+        running = true;
+    }
+
+    public synchronized void stop() {
+        try {
+            thread.join();
+            running = false;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Override
+    public void run() {
+        long lastTime = System.nanoTime();
+        double numOfTicks = 60.0;
+        double ns = 1000000000 / numOfTicks;
+        double delta = 0;
+        long timer = System.currentTimeMillis();
+        int frames = 0;
+        while (running) {
+            long now = System.nanoTime();
+            delta += (now - lastTime) / ns;
+            lastTime = now;
+            while (delta >= 1) {
+                processInput();
+                update(); 
+                delta--;
+                render();
+                frames++;
+            }
+
+            if (System.currentTimeMillis() - timer > 1000){
+                timer += 1000;
+                //System.out.println("FPS: " + frames);
+                frames = 0;
+            }
+        }
+        stop();
+
+    }
     @Override
     public void mouseClicked(MouseEvent e) {
 
@@ -60,24 +161,27 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
 
     @Override
     public void mousePressed(MouseEvent e) {
-        // TODO Auto-generated method stub
         int x = e.getX();
         int y = e.getY();
-        board.checkMousePosition(x, y, false, playerTurn);
-        // board.repaint();
+        this.setMouseX(x);
+        this.setMouseY(y);
+        this.highlight = false;
+        
+        // board.checkMousePosition(x, y, false, playerTurn);
 
 
-        if (isSideDrawn) board.setTimeComp(60);
-        if (!isSquareFill && isSideDrawn) {
-            // playerTurn = !playerTurn;
-            playerTurn = false;
-            // System.out.println("Switch turn");
-        } else if (isSquareFill) {
-            playerScore += board.getNumSquaresFilled();
-            board.setNumSquaresFilled(0);
 
-        }
-        isSideDrawn = false;
+        // if (isSideDrawn) board.setTimeComp(60);
+        // if (!isSquareFill && isSideDrawn) {
+        //     // playerTurn = !playerTurn;
+        //     playerTurn = false;
+        //     // System.out.println("Switch turn");
+        // } else if (isSquareFill) {
+        //     playerScore += board.getNumSquaresFilled();
+        //     board.setNumSquaresFilled(0);
+
+        // }
+        // isSideDrawn = false;
     }
 
     @Override
@@ -87,9 +191,6 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
 
     @Override
     public void mouseEntered(MouseEvent e) {
-
-        // board.checkMousePosition(x, y);
-        // board.repaint();
     }
 
     @Override
@@ -108,10 +209,11 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
     public void mouseMoved(MouseEvent e) {
         int x = e.getX();
         int y = e.getY();
-        board.checkMousePosition(x, y, true, playerTurn);
-        // board.repaint();
-        // System.out.println("inside mouse move");
-        // board.update(board.getGraphics());
+        this.setMouseX(x);
+        this.setMouseY(y);
+        this.highlight = true;
+        //board.checkMousePosition(x, y, true, playerTurn);
+
     }
 
     public boolean isPlayerTurn() {
@@ -130,6 +232,10 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
         if (cmd.equals("new")) {
+            this.setCompScore(0);
+            this.setPlayerScore(0);
+            this.setSideDrawn(false);
+            this.setSquareFill(false);
             board.clearAll();
 
             // board.repaint();
@@ -172,55 +278,31 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
         this.compScore = compScore;
     }
 
-    public void update() {
-
+    public int getMouseX() {
+        return mouseX;
     }
 
-    public void render() {
-        board.repaint();
+    public void setMouseX(int mouseX) {
+        this.mouseX = mouseX;
     }
 
-    public synchronized void start() {
-        thread = new Thread(this);
-        thread.start();
-        running = true;
+    public int getMouseY() {
+        return mouseY;
     }
 
-    public synchronized void stop() {
-        try {
-            thread.join();
-            running = false;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void setMouseY(int mouseY) {
+        this.mouseY = mouseY;
     }
 
-    @Override
-    public void run() {
-        long lastTime = System.nanoTime();
-        double numOfTicks = 60.0;
-        double ns = 1000000000 / numOfTicks;
-        double delta = 0;
-        long timer = System.currentTimeMillis();
-        int frames = 0;
-        while (running) {
-            long now = System.nanoTime();
-            delta += (now - lastTime) / ns;
-            lastTime = now;
-            while (delta >= 1) {
-                update();
-                delta--;
-                render();
-                frames++;
-            }
-
-            if (System.currentTimeMillis() - timer > 1000){
-                timer += 1000;
-                System.out.println("FPS: " + frames);
-                frames = 0;
-            }
-        }
-        stop();
-
+    public GameState getGamestate() {
+        return gamestate;
     }
+
+    public void setGamestate(GameState gamestate) {
+        this.gamestate = gamestate;
+    }
+
+    
+
+
 }

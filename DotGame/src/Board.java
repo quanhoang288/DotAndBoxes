@@ -7,7 +7,7 @@ public class Board extends JPanel {
     private static final long serialVersionUID = 1L;
     public static final int HEIGHT = 800;
     public static final int WIDTH = (int) (HEIGHT * 0.8);
-    public static final int SIZE = 4; // 3x3 board
+    public static final int SIZE = 6; // 3x3 board
     public static final int CELL = WIDTH / (SIZE + 2); // size of a box
     public static final int MARGIN = HEIGHT - (SIZE + 2) * CELL; // top margin
     public static final int DOT = CELL / 12; // radius of a dot
@@ -21,6 +21,7 @@ public class Board extends JPanel {
     private ArrayList<Box> currentBoxes;
     private Game game;
     private int numSquaresFilled;
+    private Box lastBox;
     private int timeComp;
     public Board(Game game) {
         this.game = game;
@@ -30,21 +31,16 @@ public class Board extends JPanel {
         for (int i = 0; i < SIZE; ++i) {
             boxes.add(new ArrayList<>());
             for (int j = 0; j < SIZE; ++j) {
-                boxes.get(i).add(new Box(getX(j) + DOT / 2, getY(i) + DOT / 2));
+                boxes.get(i).add(new Box(getX(j) + DOT / 2, getY(i) + DOT / 2, i, j));
             }
         }
-        // for (int i = 0; i < SIZE; ++i){
-        // for (int j = 0; j < SIZE; ++j){
-        // System.out.println("Row: " + this.getRow(boxes.get(i).get(j).getTop()) + ",
-        // Col: " + this.getCol(boxes.get(i).get(j).getLeft()));
-        // }
-        // }
+
     }
 
     public void paintComponent(Graphics g) {
         drawBoard(g);
         drawScore(g);
-        computerGo();
+        //computerGo();
         drawBoxes(g);
         if (game.isGameOver())
             drawResult(g);
@@ -74,65 +70,68 @@ public class Board extends JPanel {
         g.drawString(Integer.toString(game.getPlayerScore()), 2 * CELL - 25, MARGIN / 4 + 30);
     }
 
-    public void computerGo() {
+    // public void computerGo() {
 
-        if (game.isPlayerTurn() || timeComp > 0){
-            timeComp--;
-            return;
-        }
-        // System.out.println("Computer turn");
-
-        selectRandomSide();
-        timeComp = 60;
-    }
-    public void selectRandomSide(){
-        ArrayList<Box> candidates = new ArrayList<>();
-        for (int i = 0; i < SIZE; ++i){
-            for (int j = 0; j < SIZE; ++j){
-                if (boxes.get(i).get(j).getNumOfSides() < 4 && boxes.get(i).get(j).getNumOfSides() != 2){
-                    candidates.add(boxes.get(i).get(j));
-                }
-            }
-        }
-        Box.setPlayerTurn(game.isPlayerTurn());
-        if (candidates.size() > 0){
-            Box chosenBox = candidates.get((int)Math.floor(Math.random() * candidates.size())); 
-            //System.out.println("Player Turn: " + Box.isPlayerTurn());
-            // todo select a random side
-            //System.out.println("Row of chosen box: " + this.getRow(chosenBox.getTop()) + ", Col of chosen box: " + this.getCol(chosenBox.getLeft()));
-            int freeSide = chosenBox.getFreeSide();
-            chosenBox.setCoords(freeSide);
-            chosenBox.highlightSide();
-            chosenBox.selectSide();
-            if (chosenBox.allSidesDrawn())
-                game.setCompScore(game.getCompScore() + 1);
-            else game.setPlayerTurn(!game.isPlayerTurn());
-            this.drawNeighbor(chosenBox, freeSide);
-        }
-        else {
-            for (int i = 0; i < SIZE; ++i){
-                for (int j = 0; j < SIZE; ++j){
-                    if (!boxes.get(i).get(j).allSidesDrawn()){
-                        int side = boxes.get(i).get(j).getFreeSide();
-                        boxes.get(i).get(j).setCoords(side);
-                        boxes.get(i).get(j).highlightSide();
-                        boxes.get(i).get(j).selectSide();
-                        if (boxes.get(i).get(j).allSidesDrawn())
-                            game.setCompScore(game.getCompScore() + 1);
-                        else game.setPlayerTurn(true);
-                        drawNeighbor(boxes.get(i).get(j), side);
-                        return;
-                    }
+    //     if (game.isPlayerTurn() || timeComp > 0){
+    //         timeComp--;
+    //         return;
+    //     }
+    //     selectRandomSide();
+    //     timeComp = 60;
+    // }
+    // public void selectRandomSide(){
+    //     ArrayList<Box> candidates = new ArrayList<>();
+    //     for (int i = 0; i < SIZE; ++i){
+    //         for (int j = 0; j < SIZE; ++j){
+    //             if (boxes.get(i).get(j).getNumOfSides() < 4 && boxes.get(i).get(j).getNumOfSides() != 2){
+    //                 candidates.add(boxes.get(i).get(j));
+    //             }
+    //         }
+    //     }
+    //     Box.setPlayerTurn(game.isPlayerTurn());
+    //     Box chosenBox = null;
+    //     if (candidates.size() > 0){
+    //         chosenBox = candidates.get((int)Math.floor(Math.random() * candidates.size())); 
+    //     }
+    //     else {
+    //         for (int i = 0; i < SIZE; ++i){
+    //             for (int j = 0; j < SIZE; ++j){
+    //                 if (!boxes.get(i).get(j).allSidesDrawn()){
+    //                     chosenBox = boxes.get(i).get(j);
+    //                     break;
+    //                 }
                     
-                }
-            }
+    //             }
+    //             if (chosenBox != null) break;
+    //         }
                 
-        }
+    //     }
+    //     if (chosenBox != null){
+    //         int freeSide = chosenBox.getFreeSides().get(0);
+
+    //         chosenBox.setCoords(freeSide);
+    //         chosenBox.highlightSide();
+    //         chosenBox.selectSide();
+    //         game.setSideDrawn(true);
+    //         if (chosenBox.allSidesDrawn()){
+    //             numSquaresFilled++;
+    //             game.setSquareFill(true);
+    //         }
+    
+    //         Box neighbor = this.getNeighbor(chosenBox, freeSide);
+    //         if (neighbor != null){
+    //             this.drawNeighbor(neighbor, freeSide);
+    //             if (neighbor.allSidesDrawn()) {
+    //                 numSquaresFilled++;
+    //                 game.setSquareFill(true);
+    //             }
+    //         }
+    //     }
+
         
-    }
-    public void drawNeighbor(Box box, int side){
-        Box neighbor = this.getNeighbor(box, side);
-        if (neighbor == null) return;
+    // }
+    public void drawNeighbor(Box neighbor, int side){
+        //Box neighbor = this.getNeighbor(box, side);
         switch (side){
             case Box.LEFT:
                 neighbor.setHighlight(Box.RIGHT);
@@ -148,19 +147,18 @@ public class Board extends JPanel {
                 break;
         }
         neighbor.selectSide();
-        if (neighbor.allSidesDrawn()) game.setCompScore(game.getCompScore() + 1);
-        else if (!box.allSidesDrawn()) game.setPlayerTurn(true);
         
     }
     public Box getNeighbor(Box box, int side){
-        int row = this.getRow(box.getTop());
-        int col = this.getCol(box.getLeft());
+        int row = Board.getRow(box.getTop());
+        int col = Board.getCol(box.getLeft());
         if (side == Box.TOP && row > 0) return boxes.get(row - 1).get(col);
         else if (side == Box.LEFT && col > 0) return boxes.get(row).get(col - 1);
         else if (side == Box.RIGHT && col < SIZE - 1) return boxes.get(row).get(col + 1);
         else if (side == Box.BOT && row < SIZE - 1) return boxes.get(row + 1).get(col);
         return null;
     }
+
     public void drawBoxes(Graphics g){
         //draw sides and fill boxes
 
@@ -182,9 +180,7 @@ public class Board extends JPanel {
         g.setFont(new Font("Arial", Font.BOLD, 20));
         if (!result.equals("TIE")) g.drawString("WINS", WIDTH/2 - 30, MARGIN/4 + 70 + g.getFontMetrics().getHeight());
     }
-    public void drawSides(Box box){
-        // todo
-    }
+
 
     public int getX(int col){
         return CELL * (col + 1);
@@ -192,10 +188,10 @@ public class Board extends JPanel {
     public int getY(int row){
         return MARGIN + CELL * row;
     }
-    public int getCol(int x){
+    public static int getCol(int x){
         return (x - DOT/2)/CELL - 1;
     }
-    public int getRow(int y){
+    public static int getRow(int y){
         return (y - DOT/2 - MARGIN)/CELL;
     }
     public void resetBoxes(){
@@ -204,13 +200,8 @@ public class Board extends JPanel {
                 boxes.get(i).get(j).unhighlightSide();
         }
         currentBoxes = new ArrayList<>();
-        game.setSquareFill(false);
     }
     public void clearAll(){
-        game.setPlayerScore(0);
-        game.setCompScore(0);
-        game.setSideDrawn(false);
-        game.setSquareFill(false);
         for (int i = 0; i < SIZE; ++i){
             for (int j = 0; j < SIZE; ++j)
                 boxes.get(i).get(j).clearAll();
@@ -220,69 +211,36 @@ public class Board extends JPanel {
     public void checkMousePosition(int mouseX, int mouseY, boolean isHighlight, boolean isPlayerTurn){
         if (!game.isPlayerTurn()) return;
         resetBoxes();
-        for (int i = 0; i < SIZE; ++i){
-            for (int j = 0; j < SIZE; ++j){
-                if (boxes.get(i).get(j).contains(mouseX, mouseY)){
-                    //System.out.println("Position (" + mouseX + ", " + mouseY + ") in box (" + i + ", " + j + ')');
-                    Box.setPlayerTurn(isPlayerTurn);
-                    boxes.get(i).get(j).setMouseX(mouseX);
-                    boxes.get(i).get(j).setMouseY(mouseY);
-                    boxes.get(i).get(j).highlightSide(); // highlight a side if not already selected
-                    if (boxes.get(i).get(j).getHighlight() == -1) return;
-                    else currentBoxes.add(boxes.get(i).get(j));
-                    // if (!boxes.get(i).get(j).allSidesDrawn()){
-                    //     currentBoxes.add(boxes.get(i).get(j));
-                    // }
-                    // if (i > 0 && !boxes.get(i - 1).get(j).allSidesDrawn()){
-                    //     currentBoxes.add(boxes.get(i - 1).get(j));
-                    // }
-                    // if (i < SIZE - 1 && !boxes.get(i + 1).get(j).allSidesDrawn()){
-                    //     currentBoxes.add(boxes.get(i + 1).get(j));
-                    // }
-                    // if (j > 0 && !boxes.get(i).get(j - 1).allSidesDrawn()){
-                    //     currentBoxes.add(boxes.get(i).get(j - 1));
-                    // }
-                    // if (j < SIZE - 1 && !boxes.get(i).get(j + 1).allSidesDrawn()){
-                    //     currentBoxes.add(boxes.get(i).get(j + 1));
-                    // }
-                    if (!isHighlight) {
-                        if (i > 0 && boxes.get(i).get(j).getHighlight() == Box.TOP){
-                            boxes.get(i - 1).get(j).setHighlight(Box.BOT); // check for left neighbor
-                            boxes.get(i - 1).get(j).selectSide();
-                            currentBoxes.add(boxes.get(i - 1).get(j));
-                            
-                        }
-                        else if (i < SIZE - 1 && boxes.get(i).get(j).getHighlight() == Box.BOT){
-                            boxes.get(i + 1).get(j).setHighlight(Box.TOP); // check for right neighbor
-                            boxes.get(i + 1).get(j).selectSide();
-                            currentBoxes.add(boxes.get(i + 1).get(j));
-                        }
-                        else if (j > 0 && boxes.get(i).get(j).getHighlight() == Box.LEFT){
-                            boxes.get(i).get(j - 1).setHighlight(Box.RIGHT); // check for top neighbor
-                            boxes.get(i).get(j - 1).selectSide();
-                            currentBoxes.add(boxes.get(i).get(j - 1));
-                        }
-                        else if (j < SIZE - 1 && boxes.get(i).get(j).getHighlight() == Box.RIGHT){
-                            boxes.get(i).get(j + 1).setHighlight(Box.LEFT); // check for bottom neighbor
-                            boxes.get(i).get(j + 1).selectSide();
-                            currentBoxes.add(boxes.get(i).get(j + 1));
-                            
-                        }
-                        game.setSideDrawn(boxes.get(i).get(j).selectSide()); // if click then fill that side  
-                        for (Box box : currentBoxes){
-                            //System.out.println(box.allSidesDrawn());
-                            if (box.allSidesDrawn()){
-                                numSquaresFilled++;
-                                game.setSquareFill(true);
-                            } 
-                            
-                        }
-                    }
-                    return;
-                }
-                
+        int row = Board.getRow(mouseY);
+        int col = Board.getCol(mouseX);
+        if (row < 0 || col < 0 || row >= SIZE || col >= SIZE) return;
+        Box currentBox = boxes.get(row).get(col);
+        Box.setPlayerTurn(isPlayerTurn);
+        currentBox.setMouseX(mouseX);
+        currentBox.setMouseY(mouseY);
+        currentBox.highlightSide();
+        if (currentBox.getHighlight() == -1) return;
+        if (!isHighlight){
+            game.setSideDrawn(true);
+            currentBox.setLastSide(currentBox.getHighlight());
+            Box neighbor = this.getNeighbor(currentBox, currentBox.getHighlight());
+            if (neighbor != null){
+                this.drawNeighbor(neighbor, currentBox.getHighlight());
+                currentBoxes.add(neighbor);
+            }
+            currentBox.selectSide();
+            currentBoxes.add(currentBox);
+            
+            for (Box box : currentBoxes){
+                if (box.allSidesDrawn()){
+                    numSquaresFilled++;
+                    game.setSquareFill(true);
+                }                           
             }
         }
+        lastBox = currentBox;
+        
+        
     }
 
     public int getNumSquaresFilled() {
@@ -315,6 +273,14 @@ public class Board extends JPanel {
 
     public void setBoxes(ArrayList<ArrayList<Box>> boxes) {
         this.boxes = boxes;
+    }
+
+    public Box getLastBox() {
+        return lastBox;
+    }
+
+    public void setLastBox(Box lastBox) {
+        this.lastBox = lastBox;
     }
 
 }

@@ -1,15 +1,18 @@
 import java.awt.*;
+import java.util.ArrayList;
 public class Box {
     public static final int THRESHOLD = Board.CELL/5;
     public static final int LEFT = 0, RIGHT = 1, TOP = 2, BOT = 3;
-    private int left, right, top, bot, mouseX, mouseY;
+    private int left, right, top, bot, row, col, mouseX, mouseY;
     private boolean[] isDrawn;
     private boolean[] ownedByPlayer;
     private int highlight;
     private boolean owner;
     private static boolean playerTurn;
     private int numOfSides;
-    public Box(int x, int y){
+    private int lastSide;
+    
+    public Box(int x, int y, int row, int col){
         isDrawn = new boolean[4];
         ownedByPlayer = new boolean[4];
         highlight = -1;
@@ -17,6 +20,8 @@ public class Box {
         this.top = y;
         this.right = x + Board.CELL;
         this.bot = y + Board.CELL;
+        this.row = row;
+        this.col = col;
     }
     public boolean contains(int x, int y){
         return x >= this.left && x < this.right &&  y >= this.top && y < this.bot;
@@ -85,8 +90,7 @@ public class Box {
          
     }
     public void highlightSide(){
-        // System.out.println("Highlighting a side");
-        //setPlayerTurn(playerTurn);
+
         int disLeft = Math.abs(mouseX - this.left);
         int disRight = Math.abs(mouseX - this.right); 
         int disTop = Math.abs(mouseY - this.top);
@@ -106,7 +110,6 @@ public class Box {
     }
     public boolean selectSide(){
         if (this.highlight == -1) return false;
-        // System.out.println("Selecting a side");
         numOfSides++;
         switch (this.highlight){
             
@@ -127,12 +130,10 @@ public class Box {
                 ownedByPlayer[BOT] = playerTurn;
                 break;
         }
-        this.highlight = -1;
-        // if (!this.allSidesDrawn()) Game.setPlayerTurn(!playerTurn);
-        // else this.owner = playerTurn; 
+        this.highlight = -1; 
         if (this.allSidesDrawn()) this.owner = playerTurn;
         return true;
-        // System.out.println("Player turn: " + Game.isPlayerTurn());
+
         
     }
     public void drawSides(Graphics g){
@@ -194,11 +195,16 @@ public class Box {
                 break;
         }         
     }
-    public int getFreeSide(){
-        if (!isDrawn[TOP]) return TOP;
-        if (!isDrawn[LEFT]) return LEFT;
-        if (!isDrawn[RIGHT]) return RIGHT;
-        return BOT;
+    public ArrayList<Integer> getFreeSides(){
+        ArrayList<Integer> res = new ArrayList<>();
+        if (!isDrawn[TOP]) res.add(TOP);
+        if (!isDrawn[LEFT]) res.add(LEFT);
+        if (!isDrawn[RIGHT]) res.add(RIGHT);
+        if (!isDrawn[BOT]) res.add(BOT);
+        return res;
+    }
+    public boolean checkFreeSide(int side){
+        return !isDrawn[side];
     }
 
 
@@ -266,10 +272,44 @@ public class Box {
         this.top = top;
     }
 
-    // @Override
-    // public String toString() {
-    //     return "Box []";
-    // }
+    public int getRow() {
+        return row;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
+    public void setCol(int col) {
+        this.col = col;
+    }
+
+    public int getLastSide() {
+        return lastSide;
+    }
+
+    public void setLastSide(int lastSide) {
+        this.lastSide = lastSide;
+    }
+
+    public static int getOpposite(int side){
+        if (side == TOP) return BOT;
+        if (side == BOT) return TOP;
+        if (side == LEFT) return RIGHT;
+        return LEFT;
+    }
+
+    @Override
+    public String toString() {
+        return "Box [row=" + row + ", col=" + col + "]: " + (4 - getNumOfSides());
+    }
+
+    
+
 
 
 }
