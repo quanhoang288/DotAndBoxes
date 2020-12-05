@@ -19,7 +19,21 @@ public class AI {
             delay--;
             return;
         }
-        selectRandomSide();
+        ArrayList<ArrayList<Box> > doubleHandouts = gamestate.getDoubleHandouts();
+        ArrayList<Box> handouts = gamestate.getSingleHandouts();
+        if (doubleHandouts.size() > 0){
+            ArrayList<Box> handout = doubleHandouts.get(0);
+            Box box = handout.get(0);
+            int side = box.getFreeSides().get(0);
+            drawBox(box, side);
+        }
+        else if (handouts.size() > 0){
+            Box box = handouts.get(0);
+            int side = box.getFreeSides().get(0);
+            drawBox(box, side);
+        }
+        else 
+            selectRandomSide();
         delay = 60;
     }
     public ArrayList<Box> listMoves(){

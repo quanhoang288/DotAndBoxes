@@ -13,6 +13,7 @@ public class GameState {
     private ArrayList<ArrayList<Box>> boxes;
     private Map<String, ArrayList<ArrayList<Box> > > structures;
     private ArrayList<Box> freeMoves, joints; // degree = 3, 4
+    private ArrayList<Box> handouts;
     // private int looneyValue;
     // private int netScore;
     // private boolean playerInControl;
@@ -20,10 +21,11 @@ public class GameState {
         boxes = new ArrayList<ArrayList<Box> >();
         freeMoves = new ArrayList<Box>();
         joints = new ArrayList<Box>();
+        handouts = new ArrayList<Box>();
         structures = new HashMap<String, ArrayList<ArrayList<Box> > >();
         structures.put("chains", new ArrayList<ArrayList<Box> >());
         structures.put("loops", new ArrayList<ArrayList<Box> >());
-        structures.put("handouts", new ArrayList<ArrayList<Box> >());
+        // structures.put("handouts", new ArrayList<ArrayList<Box> >());
         structures.put("1-chains", new ArrayList<ArrayList<Box> >());
         structures.put("2-chains", new ArrayList<ArrayList<Box> >());
         structures.put("possibleLoops", new ArrayList<ArrayList<Box> >());
@@ -51,16 +53,16 @@ public class GameState {
         }
         else if (degree == 1){
             int freeSide = box.getFreeSides().get(0);
-            System.out.println("free side: " + freeSide);
             Box neighbor = getNeighbor(box, freeSide);
             // either a side edge or connected to a joint
             if (neighbor == null || isJoint(neighbor)){
                 // create a single handout 
 
-                ArrayList<Box> handout = new ArrayList<Box>();
-                handout.add(box);
+                // ArrayList<Box> handout = new ArrayList<Box>();
+                // handout.add(box);
                 removeFromList(box);
-                createStructure("handouts", handout);
+                handouts.add(box);
+                //createStructure("handouts", handout);
             }
             else{
                 // there is another box connected to the handout box
@@ -79,9 +81,9 @@ public class GameState {
                     //split the current structure into 2 new structures
 
                     removeFromList(box);
-                    ArrayList<Box> handout = new ArrayList<Box>();
-                    handout.add(box);
-                    createStructure("handouts", handout);
+                    // ArrayList<Box> handout = new ArrayList<Box>();
+                    // handout.add(box);
+                    // createStructure("handouts", handout);
                     
                     ArrayList<Box> newChain;
                     newChain = new ArrayList<Box>();
@@ -94,9 +96,9 @@ public class GameState {
                             removeFromList(connectedPart.get(i));
                         }
                     }
-                    System.out.println("new chain: ");
-                    for (Box bx: newChain) System.out.println(bx);
-
+                    // System.out.println("new chain: ");
+                    // for (Box bx: newChain) System.out.println(bx);
+                    handouts.add(box);
                     createStructure("chains", newChain);
                     
 
@@ -107,10 +109,10 @@ public class GameState {
             // first remove the box from freeboxes list 
             // merge all structures connected to the box into a new structure and remove old ones from structure list
             ArrayList<Box> newChain = findConnected(box);
-            System.out.println("new chain");
-            for (Box bx : newChain){
-                System.out.println(bx);
-            }
+            // System.out.println("new chain");
+            // for (Box bx : newChain){
+            //     System.out.println(bx);
+            // }
             for (int i = 0; i < newChain.size(); ++i){
                 removeFromList(newChain.get(i));
             }
@@ -133,7 +135,7 @@ public class GameState {
         for (int i = 0; i < chains.size(); ++i){
             ArrayList<Box> curChain = chains.get(i);
             if (curChain.size() > 0 && checkLoop(curChain)){
-                System.out.println("creating loop...");
+                // System.out.println("creating loop...");
                 chains.remove(curChain);
                 structures.get("loops").add(curChain);
             }
@@ -187,31 +189,15 @@ public class GameState {
     public ArrayList<Box> freeMoves(){
         return freeMoves;
     }
-    public ArrayList<ArrayList<Box> >  getSingleHandouts(){
-        return structures.get("handouts");
+    public ArrayList<Box>  getSingleHandouts(){
+        return handouts;
     }
     public ArrayList<ArrayList<Box> > getDoubleHandouts(){
         return structures.get("doubleHandouts");
     }
 
     private ArrayList<Box> findConnected(Box box){
-        // ArrayList<Box> res = new ArrayList<Box>();
-        // Queue<Box> q = new LinkedList<>();
-        // boolean flag[][] = new boolean[Board.SIZE][Board.SIZE];
-        // q.add(box);
-        // while (!q.isEmpty()){
-        //     Box top = q.poll();
-        //     flag[top.getRow()][top.getCol()] = true;
-        //     res.add(top);
-        //     int firstSide = top.getFreeSides().get(0);
-        //     int secondSide = top.getFreeSides().get(1);
-        //     Box firstNeighbor = getNeighbor(top, firstSide);
-        //     Box secondNeighbor = getNeighbor(top, secondSide);
-        //     if (firstNeighbor != null && !flag[firstNeighbor.getRow()][firstNeighbor.getCol()] && firstNeighbor.getNumOfSides() == 2) 
-        //         q.add(firstNeighbor);
-        //     if (secondNeighbor != null && !flag[secondNeighbor.getRow()][secondNeighbor.getCol()] && secondNeighbor.getNumOfSides() == 2) 
-        //         q.add(secondNeighbor);
-        // }
+
         ArrayList<Box> res = new ArrayList<Box>();
         Stack<Box> q = new Stack<Box>();
         boolean flag[][] = new boolean[Board.SIZE][Board.SIZE];
@@ -231,13 +217,12 @@ public class GameState {
             if (firstNeighbor != null && !flag[firstNeighbor.getRow()][firstNeighbor.getCol()] && firstNeighbor.getNumOfSides() == 2){
                 q.add(firstNeighbor);
                 flag[firstNeighbor.getRow()][firstNeighbor.getCol()] = true;
-                System.out.println("First neighbor: " + firstNeighbor);
             } 
                 
             if (secondNeighbor != null && !flag[secondNeighbor.getRow()][secondNeighbor.getCol()] && secondNeighbor.getNumOfSides() == 2){
                 q.add(secondNeighbor);
                 flag[secondNeighbor.getRow()][secondNeighbor.getCol()] = true;
-                System.out.println("Second neighbor: " + secondNeighbor);
+                
             }
                 
         }
@@ -278,6 +263,7 @@ public class GameState {
     public void removeFromList(Box box){
         if (freeMoves.indexOf(box) != -1) freeMoves.remove(box);
         if (joints.indexOf(box) != -1) joints.remove(box);
+        if (handouts.indexOf(box) != -1) handouts.remove(box);
         for (Map.Entry<String, ArrayList<ArrayList<Box> > > structure : structures.entrySet()){
             ArrayList<ArrayList<Box> > curStruct = structure.getValue();
             for (ArrayList<Box> struct : curStruct){
@@ -342,10 +328,10 @@ public class GameState {
         // }
         // handouts
 
-        ArrayList<ArrayList<Box> > singleHandouts = structures.get("handouts");
-        System.out.println("Single handouts: " + singleHandouts.size());
-        for (ArrayList<Box> handout : singleHandouts){
-            for (Box box : handout) System.out.println(box);
+        //ArrayList<ArrayList<Box> > singleHandouts = structures.get("handouts");
+        System.out.println("Single handouts: " + handouts.size());
+        for (Box box : handouts){
+            System.out.println(box);
             System.out.println("---------------------------");
         }
         // double handouts
