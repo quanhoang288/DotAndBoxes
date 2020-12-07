@@ -3,8 +3,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.event.MouseInputListener;
-
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class Game extends JFrame implements MouseInputListener, ActionListener, Runnable {
 
@@ -23,9 +23,20 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
         this.mouseX = this.mouseY = -1;
         initComponent();
         gamestate = new GameState(board.getBoxes(), playerTurn);
+        gamestate.setPlayerScore(playerScore);
+        gamestate.setCompScore(compScore);
+        gamestate.setPlayerTurn(playerTurn);
         comp = new AI(this, board);
+        // GameState g = (GameState) GameState.deepCopy(gamestate);
+        // ArrayList<Box> freeMoves = g.getFreeMoves();
+        // freeMoves.get(0).setHighlight(0);
+        // freeMoves.get(0).selectSide();
+        // freeMoves.get(0).setHighlight(1);
+        // freeMoves.get(0).selectSide();
+        // g.update(g.getBoxes().get(0).get(0), 1);
+        // gamestate.printInfo();
+        // g.printInfo();
 
-        
     }
     public void initComponent(){
         JMenuBar menuBar = new JMenuBar();
@@ -86,6 +97,7 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
                 }
                     
             }
+            if (!isSquareFill) gamestate.setPlayerTurn(!playerTurn);
                 
             gamestate.printInfo();
         } 

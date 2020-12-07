@@ -7,7 +7,7 @@ public class Board extends JPanel {
     private static final long serialVersionUID = 1L;
     public static final int HEIGHT = 800;
     public static final int WIDTH = (int) (HEIGHT * 0.8);
-    public static final int SIZE = 5; // 3x3 board
+    public static final int SIZE = 4; // 3x3 board
     public static final int CELL = WIDTH / (SIZE + 2); // size of a box
     public static final int MARGIN = HEIGHT - (SIZE + 2) * CELL; // top margin
     public static final int DOT = CELL / 12; // radius of a dot
@@ -22,7 +22,6 @@ public class Board extends JPanel {
     private Game game;
     private int numSquaresFilled;
     private Box lastBox;
-    private int timeComp;
     public Board(Game game) {
         this.game = game;
         super.setSize(WIDTH, HEIGHT);
@@ -70,67 +69,8 @@ public class Board extends JPanel {
         g.drawString(Integer.toString(game.getPlayerScore()), 2 * CELL - 25, MARGIN / 4 + 30);
     }
 
-    // public void computerGo() {
 
-    //     if (game.isPlayerTurn() || timeComp > 0){
-    //         timeComp--;
-    //         return;
-    //     }
-    //     selectRandomSide();
-    //     timeComp = 60;
-    // }
-    // public void selectRandomSide(){
-    //     ArrayList<Box> candidates = new ArrayList<>();
-    //     for (int i = 0; i < SIZE; ++i){
-    //         for (int j = 0; j < SIZE; ++j){
-    //             if (boxes.get(i).get(j).getNumOfSides() < 4 && boxes.get(i).get(j).getNumOfSides() != 2){
-    //                 candidates.add(boxes.get(i).get(j));
-    //             }
-    //         }
-    //     }
-    //     Box.setPlayerTurn(game.isPlayerTurn());
-    //     Box chosenBox = null;
-    //     if (candidates.size() > 0){
-    //         chosenBox = candidates.get((int)Math.floor(Math.random() * candidates.size())); 
-    //     }
-    //     else {
-    //         for (int i = 0; i < SIZE; ++i){
-    //             for (int j = 0; j < SIZE; ++j){
-    //                 if (!boxes.get(i).get(j).allSidesDrawn()){
-    //                     chosenBox = boxes.get(i).get(j);
-    //                     break;
-    //                 }
-                    
-    //             }
-    //             if (chosenBox != null) break;
-    //         }
-                
-    //     }
-    //     if (chosenBox != null){
-    //         int freeSide = chosenBox.getFreeSides().get(0);
-
-    //         chosenBox.setCoords(freeSide);
-    //         chosenBox.highlightSide();
-    //         chosenBox.selectSide();
-    //         game.setSideDrawn(true);
-    //         if (chosenBox.allSidesDrawn()){
-    //             numSquaresFilled++;
-    //             game.setSquareFill(true);
-    //         }
-    
-    //         Box neighbor = this.getNeighbor(chosenBox, freeSide);
-    //         if (neighbor != null){
-    //             this.drawNeighbor(neighbor, freeSide);
-    //             if (neighbor.allSidesDrawn()) {
-    //                 numSquaresFilled++;
-    //                 game.setSquareFill(true);
-    //             }
-    //         }
-    //     }
-
-        
-    // }
-    public void drawNeighbor(Box neighbor, int side){
+    public static void drawNeighbor(Box neighbor, int side){
         //Box neighbor = this.getNeighbor(box, side);
         switch (side){
             case Box.LEFT:
@@ -251,13 +191,7 @@ public class Board extends JPanel {
         this.numSquaresFilled = numSquaresFilled;
     }
 
-    public int getTimeComp() {
-        return timeComp;
-    }
 
-    public void setTimeComp(int timeComp) {
-        this.timeComp = timeComp;
-    }
 
     public Game getGame() {
         return game;

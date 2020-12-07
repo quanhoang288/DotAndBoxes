@@ -1,8 +1,11 @@
 import java.awt.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
-public class Box implements Comparable<Box>{
-    public static final int THRESHOLD = Board.CELL/5;
+public class Box implements Comparable<Box>, Cloneable, Serializable{
+
+    private static final long serialVersionUID = 1L;
+    public static final int THRESHOLD = Board.CELL / 5;
     public static final int LEFT = 0, RIGHT = 1, TOP = 2, BOT = 3;
     private int left, right, top, bot, row, col, mouseX, mouseY;
     private boolean[] isDrawn;
@@ -206,6 +209,15 @@ public class Box implements Comparable<Box>{
     }
     public boolean checkFreeSide(int side){
         return !isDrawn[side];
+    }
+    public Object clone(){
+        Box box = null;
+        try {
+            box = (Box) super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return box; 
     }
 
 
