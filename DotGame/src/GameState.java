@@ -21,7 +21,7 @@ public class GameState implements Cloneable, Serializable {
     private ArrayList<Box> handouts, length1Chains;
     private Box lastBox;
     private int lastSide;
-    // private int looneyValue;
+    private int looneyValue;
     private int playerScore, compScore;
 
     // private boolean playerInControl;
@@ -79,7 +79,7 @@ public class GameState implements Cloneable, Serializable {
       }
     
     public void update(Box box, int side){
-        System.out.println("Updating box: " + box + " with side " + side);
+        //System.out.println("Updating box: " + box + " with side " + side);
         lastBox = box;
         lastSide = side;
         int degree = 4 - box.getNumOfSides(); // number of free edges
@@ -138,7 +138,18 @@ public class GameState implements Cloneable, Serializable {
                                 removeFromList(connectedPart.get(i));
                             }
                         }
-                        createStructure("chains", newChain);
+                        Box adjacent = getAdjacent(box, side);
+                        if (adjacent != null && adjacent.getNumOfSides() == 3){
+                            newChain.add(adjacent);
+                            createStructure("loops", newChain);
+                        }
+                        else{
+                            if (newChain.size() > 2)
+                                createStructure("chains", newChain);
+                            else
+                                createStructure("2-chains", newChain);
+                        }
+                            
                     }
                     
                     handouts.add(box);
@@ -157,10 +168,17 @@ public class GameState implements Cloneable, Serializable {
             // for (Box bx : newChain){
             //     System.out.println(bx);
             // }
+            
             for (int i = 0; i < newChain.size(); ++i){
                 removeFromList(newChain.get(i));
             }
-            createStructure("chains", newChain);
+            if (newChain.size() == 1) 
+                length1Chains.add(box);
+            else if (newChain.size() == 2){
+                createStructure("2-chains", newChain);
+            }
+            else
+                createStructure("chains", newChain);
             
 
         }
@@ -185,6 +203,11 @@ public class GameState implements Cloneable, Serializable {
                 structures.get("loops").add(curChain);
             }
         }
+        ArrayList<ArrayList<Box> > loops = structures.get("loops");
+        for (int i = 0; i < loops.size(); ++i){
+            ArrayList<Box> curLoop = loops.get(i);
+            if (curLoop.size() < 4) loops.remove(curLoop);
+        }
     }
     public boolean isGameOver(){
         for (ArrayList<Box> row : boxes){
@@ -196,16 +219,54 @@ public class GameState implements Cloneable, Serializable {
     }
     public ArrayList<GameState> listMoves(){
         ArrayList<GameState> res = new ArrayList<GameState>();
+        // ArrayList<Box> candidates = new ArrayList<Box>();
+
+
+        // for (int i = 0; i < freeMoves.size(); ++i) candidates.add(freeMoves.get(i));
+        // for (int i = 0; i < joints.size(); ++i) candidates.add(joints.get(i));
+        // for (int i = 0; i < candidates.size(); ++i){
+        //     Box box = candidates.get(i);
+        //     ArrayList<Integer> sides = box.getFreeSides();
+        //     int col = box.getCol();
+        //     int row = box.getRow();
+        //     for (int k = 0; k < sides.size(); ++k){
+        //         int side = sides.get(k);
+        //         // System.out.println("side: " + side);
+        //         GameState g = (GameState) deepCopy(this);
+        //         ArrayList<ArrayList<Box> > boxList = g.getBoxes();
+        //         Box move = boxList.get(row).get(col);
+        //         //System.out.println("Current move: " + move);
+        //         move.setHighlight(side);
+        //         move.selectSide();
+        //         g.update(move, side);
+        //         Box neighbor = g.getAdjacent(move, side);
+        //         if (neighbor != null){
+        //             //System.out.println("Neighbor: " + neighbor);
+        //             Board.drawNeighbor(neighbor, side);
+        //             g.update(neighbor, Box.getOpposite(side));
+        //             if (!neighbor.allSidesDrawn() && !move.allSidesDrawn()) g.setPlayerTurn(!playerTurn); 
+        //         }
+        //         else if (!move.allSidesDrawn()) g.setPlayerTurn(!playerTurn); 
+        //         res.add(g);
+        //     }
+        // }
+        boolean isLooney = isLooney();
         for (int i = 0; i < Board.SIZE; ++i){
             for (int j = 0; j < Board.SIZE; ++j){
                 Box box = boxes.get(i).get(j);
                 int degree = 4 - box.getNumOfSides();
                 if (degree == 0) continue;
-                // System.out.println("Processing " + box);
+                
                 // System.out.println("Number of free sides: " + degree);
-                ArrayList<Integer> sides = box.getFreeSides();
+                ArrayList<Integer> sides = new ArrayList<>();
                 int col = box.getCol();
                 int row = box.getRow();
+                ArrayList<Box> chain = findStructure("chains", box);
+                ArrayList<Box> loop = findStructure("loops", box);
+
+                if (box.checkFreeSide(Box.LEFT))  sides.add(Box.LEFT);
+                if (box.checkFreeSide(Box.TOP)) sides.add(Box.TOP);
+                if (j == Board.SIZE - 1 && box.checkFreeSide(Box.BOT)) sides.add(Box.BOT);
                 for (int k = 0; k < sides.size(); ++k){
                     int side = sides.get(k);
                     // System.out.println("side: " + side);
@@ -233,6 +294,9 @@ public class GameState implements Cloneable, Serializable {
         }
         return res;
 
+    }
+    public boolean isLooney(){
+        return (freeMoves.isEmpty() && joints.isEmpty());
     }
     public Box getAdjacent(Box box, int side){
         int row = box.getRow();
@@ -300,7 +364,6 @@ public class GameState implements Cloneable, Serializable {
     }
 
     private ArrayList<Box> findConnected(Box box){
-
         ArrayList<Box> res = new ArrayList<Box>();
         Stack<Box> q = new Stack<Box>();
         boolean flag[][] = new boolean[Board.SIZE][Board.SIZE];
@@ -317,7 +380,7 @@ public class GameState implements Cloneable, Serializable {
             Box secondNeighbor = getNeighbor(top, secondSide);
             
             
-            if (firstNeighbor != null && !flag[firstNeighbor.getRow()][firstNeighbor.getCol()] && firstNeighbor.getNumOfSides() == 2){
+            if (firstNeighbor != null && !flag[firstNeighbor.getRow()][firstNeighbor.getCol()] && firstNeighbor.getNumOfSides() == 2 ){
                 q.add(firstNeighbor);
                 flag[firstNeighbor.getRow()][firstNeighbor.getCol()] = true;
             } 
@@ -329,24 +392,22 @@ public class GameState implements Cloneable, Serializable {
             }
                 
         }
+        
         return res;
     }
     private boolean isJoint(Box box){
         int degree = 4 - box.getNumOfSides(); 
         if (degree < 3) return false;
         int cnt = 0;
-        int cntLong = 0;
         ArrayList<Integer> freeSides = box.getFreeSides();
         for (int i = 0; i < freeSides.size(); ++i){
             int side = freeSides.get(i);
             Box neighbor = getNeighbor(box, side);
             if (neighbor != null &&  neighbor.getNumOfSides() == 2){
                 cnt++; // connected to more than 1 structure
-                ArrayList<Box> connected = findConnected(neighbor);
-                if (degree == 3 && connected.size() == 2) cntLong++; //only 1 edge filled and connected to a 2-chain
             }
         }
-        if (cnt > 1 || cntLong > 0) return true;
+        if (cnt >= 2) return true;
         return false;
     }
     private int getNumNeighbors(Box box){
@@ -367,7 +428,7 @@ public class GameState implements Cloneable, Serializable {
         if (inStructure(structure, box)) return;
         structure.add(box);
     }
-    private boolean inStructure(ArrayList<Box> structure, Box box){
+    public boolean inStructure(ArrayList<Box> structure, Box box){
         return structure.indexOf(box) != -1;
     }
     private void createStructure(String name, ArrayList<Box> boxes){
@@ -424,6 +485,10 @@ public class GameState implements Cloneable, Serializable {
         return res;
     }
 
+    // public boolean isLooney(){
+        
+    // }
+
 
     public void printInfo(){
         // list of free moves
@@ -453,14 +518,26 @@ public class GameState implements Cloneable, Serializable {
         for (ArrayList<Box> handout : doubleHandouts){
             for (Box box : handout) System.out.println(box);
         }
-
+        // 1 chains 
+        ArrayList<Box> length1Chains = this.length1Chains;
+        System.out.println("Length 1 chains: " + length1Chains.size());
+        for (Box box : length1Chains){
+            System.out.println(box);
+        }
+        // 2 chains 
+        ArrayList<ArrayList<Box> > length2Chains = structures.get("2-chains");
+        System.out.println("Length 2 chains: " + length2Chains.size());
+        for (ArrayList<Box> chain : length2Chains){
+            for (Box box : chain) System.out.println(box);
+        }
+        
         // chains 
 
         ArrayList<ArrayList<Box> > chains = structures.get("chains");
         System.out.println("Chains: " + chains.size()); 
         for (ArrayList<Box> chain : chains){
             for (Box box : chain) System.out.println(box);
-            // System.out.println("---------------------------");
+            System.out.println("---------------------------");
         }
 
         // loops
@@ -469,14 +546,14 @@ public class GameState implements Cloneable, Serializable {
         System.out.println("Loops: " + loops.size());
         for (ArrayList<Box> loop : loops){
             for (Box box : loop) System.out.println(box);
-            // System.out.println("---------------------------");
+            System.out.println("---------------------------");
         }
         // scores
         System.out.println("Player score: " + playerScore);
         System.out.println("Computer score: " + compScore);
 
         // turn
-        System.out.println("Player turn: " + playerTurn);
+        System.out.println("Player next: " + playerTurn);
         System.out.println("-------------------------------");
     }
 
@@ -567,6 +644,14 @@ public class GameState implements Cloneable, Serializable {
 
     public void setLastSide(int lastSide) {
         this.lastSide = lastSide;
+    }
+
+    public int getLooneyValue() {
+        return looneyValue;
+    }
+
+    public void setLooneyValue(int looneyValue) {
+        this.looneyValue = looneyValue;
     }
 
 

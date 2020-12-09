@@ -201,8 +201,8 @@ public class Box implements Comparable<Box>, Cloneable, Serializable{
     }
     public ArrayList<Integer> getFreeSides(){
         ArrayList<Integer> res = new ArrayList<>();
-        if (!isDrawn[TOP]) res.add(TOP);
         if (!isDrawn[LEFT]) res.add(LEFT);
+        if (!isDrawn[TOP]) res.add(TOP);
         if (!isDrawn[RIGHT]) res.add(RIGHT);
         if (!isDrawn[BOT]) res.add(BOT);
         return res;

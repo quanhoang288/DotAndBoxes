@@ -85,21 +85,22 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
         comp.makeMove();
         
         if (isSideDrawn){
-            comp.setDelay(60);
+            comp.setDelay(30);
             Box lastBox = board.getLastBox();
             if (lastBox != null){
                 //System.out.println(lastBox);
-                gamestate.update(lastBox, lastBox.getLastSide());
-                Box neighbor = board.getNeighbor(lastBox, lastBox.getLastSide());
+                int side = lastBox.getLastSide();
+                gamestate.update(lastBox, side);
+                Box neighbor = board.getNeighbor(lastBox, side);
                 if (neighbor != null){
-                    gamestate.update(neighbor, neighbor.getLastSide());
+                    gamestate.update(neighbor, Box.getOpposite(side));
                     
                 }
                     
             }
             if (!isSquareFill) gamestate.setPlayerTurn(!playerTurn);
-                
-            gamestate.printInfo();
+            if (!playerTurn)
+                gamestate.printInfo();
         } 
         //if (isSideDrawn) board.setTimeComp(60);
         if (!isSquareFill && isSideDrawn) {
@@ -179,21 +180,6 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
         this.setMouseY(y);
         this.highlight = false;
         
-        // board.checkMousePosition(x, y, false, playerTurn);
-
-
-
-        // if (isSideDrawn) board.setTimeComp(60);
-        // if (!isSquareFill && isSideDrawn) {
-        //     // playerTurn = !playerTurn;
-        //     playerTurn = false;
-        //     // System.out.println("Switch turn");
-        // } else if (isSquareFill) {
-        //     playerScore += board.getNumSquaresFilled();
-        //     board.setNumSquaresFilled(0);
-
-        // }
-        // isSideDrawn = false;
     }
 
     @Override
@@ -244,12 +230,20 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
         if (cmd.equals("new")) {
+            System.out.println("new game");
             this.setCompScore(0);
             this.setPlayerScore(0);
             this.setSideDrawn(false);
             this.setSquareFill(false);
             board.clearAll();
-
+            playerTurn = true;
+            gamestate = new GameState(board.getBoxes(), playerTurn);
+            gamestate.setPlayerScore(0);
+            gamestate.setCompScore(0);
+            comp.setGamestate(gamestate);
+            comp.setRandNum(4);
+            comp.getGamestate().printInfo();
+            // gamestate.printInfo();
             // board.repaint();
         } else if (cmd.equals("setting")) {
             // todo
