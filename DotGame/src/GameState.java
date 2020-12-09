@@ -256,6 +256,7 @@ public class GameState implements Cloneable, Serializable {
                 Box box = boxes.get(i).get(j);
                 int degree = 4 - box.getNumOfSides();
                 if (degree == 0) continue;
+                //if (degree < 3) continue;
                 
                 // System.out.println("Number of free sides: " + degree);
                 ArrayList<Integer> sides = new ArrayList<>();
@@ -263,10 +264,12 @@ public class GameState implements Cloneable, Serializable {
                 int row = box.getRow();
                 ArrayList<Box> chain = findStructure("chains", box);
                 ArrayList<Box> loop = findStructure("loops", box);
+                
 
                 if (box.checkFreeSide(Box.LEFT))  sides.add(Box.LEFT);
                 if (box.checkFreeSide(Box.TOP)) sides.add(Box.TOP);
-                if (j == Board.SIZE - 1 && box.checkFreeSide(Box.BOT)) sides.add(Box.BOT);
+                if (i == Board.SIZE - 1 && box.checkFreeSide(Box.BOT)) sides.add(Box.BOT);
+                if (j == Board.SIZE - 1 && box.checkFreeSide(Box.RIGHT)) sides.add(Box.RIGHT);
                 for (int k = 0; k < sides.size(); ++k){
                     int side = sides.get(k);
                     // System.out.println("side: " + side);

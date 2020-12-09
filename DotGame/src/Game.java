@@ -99,8 +99,8 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
                     
             }
             if (!isSquareFill) gamestate.setPlayerTurn(!playerTurn);
-            if (!playerTurn)
-                gamestate.printInfo();
+            // if (!playerTurn)
+            //     gamestate.printInfo();
         } 
         //if (isSideDrawn) board.setTimeComp(60);
         if (!isSquareFill && isSideDrawn) {
@@ -241,7 +241,7 @@ public class Game extends JFrame implements MouseInputListener, ActionListener, 
             gamestate.setPlayerScore(0);
             gamestate.setCompScore(0);
             comp.setGamestate(gamestate);
-            comp.setRandNum(4);
+            comp.setRandNum(3);
             comp.getGamestate().printInfo();
             // gamestate.printInfo();
             // board.repaint();
