@@ -219,37 +219,7 @@ public class GameState implements Cloneable, Serializable {
     }
     public ArrayList<GameState> listMoves(){
         ArrayList<GameState> res = new ArrayList<GameState>();
-        // ArrayList<Box> candidates = new ArrayList<Box>();
 
-
-        // for (int i = 0; i < freeMoves.size(); ++i) candidates.add(freeMoves.get(i));
-        // for (int i = 0; i < joints.size(); ++i) candidates.add(joints.get(i));
-        // for (int i = 0; i < candidates.size(); ++i){
-        //     Box box = candidates.get(i);
-        //     ArrayList<Integer> sides = box.getFreeSides();
-        //     int col = box.getCol();
-        //     int row = box.getRow();
-        //     for (int k = 0; k < sides.size(); ++k){
-        //         int side = sides.get(k);
-        //         // System.out.println("side: " + side);
-        //         GameState g = (GameState) deepCopy(this);
-        //         ArrayList<ArrayList<Box> > boxList = g.getBoxes();
-        //         Box move = boxList.get(row).get(col);
-        //         //System.out.println("Current move: " + move);
-        //         move.setHighlight(side);
-        //         move.selectSide();
-        //         g.update(move, side);
-        //         Box neighbor = g.getAdjacent(move, side);
-        //         if (neighbor != null){
-        //             //System.out.println("Neighbor: " + neighbor);
-        //             Board.drawNeighbor(neighbor, side);
-        //             g.update(neighbor, Box.getOpposite(side));
-        //             if (!neighbor.allSidesDrawn() && !move.allSidesDrawn()) g.setPlayerTurn(!playerTurn); 
-        //         }
-        //         else if (!move.allSidesDrawn()) g.setPlayerTurn(!playerTurn); 
-        //         res.add(g);
-        //     }
-        // }
         boolean isLooney = isLooney();
         for (int i = 0; i < Board.SIZE; ++i){
             for (int j = 0; j < Board.SIZE; ++j){
@@ -365,7 +335,21 @@ public class GameState implements Cloneable, Serializable {
     public ArrayList<ArrayList<Box> > getDoubleHandouts(){
         return structures.get("doubleHandouts");
     }
+    private boolean isBroken(ArrayList<Box> struct){
+        for (Box box : struct){
+            if (box.getNumOfSides() == 3) return true;
+        }
+        return false;
+    }
+    public int numOfBroken(String name){
+        int cnt = 0;
+        ArrayList<ArrayList<Box>> structList = structures.get(name);
+        for (ArrayList<Box> struct : structList){
+            if (isBroken(struct)) cnt++;
+        }
+        return cnt;
 
+    }
     private ArrayList<Box> findConnected(Box box){
         ArrayList<Box> res = new ArrayList<Box>();
         Stack<Box> q = new Stack<Box>();

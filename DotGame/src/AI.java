@@ -24,7 +24,7 @@ public class AI {
             delay--;
             return;
         }
-        System.out.println("Looney stage: " + gamestate.isLooney());
+        // System.out.println("Looney stage: " + gamestate.isLooney());
         
         ArrayList<ArrayList<Box>> doubleHandouts = gamestate.getDoubleHandouts();
         ArrayList<Box> handouts = gamestate.getSingleHandouts();
@@ -34,28 +34,30 @@ public class AI {
         ArrayList<ArrayList<Box> > length2Chains = gamestate.getStructures().get("2-chains");
         ArrayList<ArrayList<Box> > chains = gamestate.getStructures().get("chains");
         ArrayList<ArrayList<Box> > loops = gamestate.getStructures().get("loops");
-        System.out.println("Free moves: " + freeMoves.size());
+        // System.out.println("Free moves: " + freeMoves.size());
         if (doubleHandouts.size() > 0){
-            System.out.println("double handouts");
+            // System.out.println("double handouts");
             ArrayList<Box> handout = doubleHandouts.get(0);
             Box box = handout.get(0);
             int side = box.getFreeSides().get(0);
             drawBox(box, side);
         }
         else if (handouts.size() > 0){
-            System.out.println("single handouts");
+            // System.out.println("single handouts");
             Box box = handouts.get(0);
         
             ArrayList<Box> brokenChain = gamestate.findStructure("chains", box);
             ArrayList<Box> brokenLoop = gamestate.findStructure("loops", box);
             ArrayList<Box> length2Broken = gamestate.findStructure("2-chains", box);
+            int numBrokenChain = gamestate.numOfBroken("chains");
+            int numBrokenLoop = gamestate.numOfBroken("loops");
             if (brokenChain != null){
-                System.out.println("chain length > 2");
+                // System.out.println("chain length > 2");
                 int side = box.getFreeSides().get(0);
                 drawBox(box, side);        
             }
             else if(length2Broken != null){
-                System.out.println("length 2 chain");
+                // System.out.println("length 2 chain");
                 if (!gamestate.isLooney()){
                     int side = box.getFreeSides().get(0);
                     drawBox(box, side);
@@ -65,11 +67,16 @@ public class AI {
                     drawBox(box, side);
                 }
                 else{
-                    makeDoubleDealingMove(box);
+                    if (numBrokenChain < 2)
+                        makeDoubleDealingMove(box);
+                    else{
+                        int side = box.getFreeSides().get(0);
+                        drawBox(box, side); 
+                    }
                 }
             }
             else if (brokenLoop != null){
-                System.out.println("broken loop");
+                // System.out.println("broken loop");
                 if (brokenLoop.size() > 4){
                     int side = box.getFreeSides().get(0);
                     drawBox(box, side);
@@ -79,8 +86,15 @@ public class AI {
                         int side = box.getFreeSides().get(0);
                         drawBox(box, side);
                     }
-                    else
-                        makeDoubleDealingMoveLoop(box);
+                    else{
+                        if (brokenLoop.size() < 2)
+                            makeDoubleDealingMoveLoop(box);
+                        else{
+                            int side = box.getFreeSides().get(0);
+                            drawBox(box, side);    
+                        }
+                    }
+                        
                     //findBestMove();
                 }
                     
@@ -94,7 +108,7 @@ public class AI {
         
         else if (freeMoves.size() > 0 && randNum > 0){
             randNum--;
-            System.out.println("free moves");
+            // System.out.println("free moves");
             Random r = new Random();
             Box neighbor = null;
             Box box = null;
@@ -108,7 +122,7 @@ public class AI {
 
                 if (neighbor == null) break;
             }while (neighbor.getNumOfSides() > 1);
-            System.out.println(box);
+            // System.out.println(box);
             
             drawBox(box, side);
 
@@ -122,7 +136,7 @@ public class AI {
             // for (GameState child : children) child.printInfo();
             // selectRandomSide();
             if (gamestate.isLooney()){
-                System.out.println("making handouts");
+                // System.out.println("making handouts");
                 // make handouts
                 if (length1Chains.size() > 0){
                     Box handout = length1Chains.get(0);
@@ -158,7 +172,7 @@ public class AI {
                 
             }
             else {
-                System.out.println("performing minimax");
+                // System.out.println("performing minimax");
                 findBestMove();
             }
                 
@@ -171,17 +185,17 @@ public class AI {
     public void findBestMove(){
         long timer = System.currentTimeMillis();
         ArrayList<GameState> children = gamestate.listMoves();
-        for (GameState child : children) 
-            System.out.println(child.getLastBox());
-        System.out.println("Number of children: " + children.size());
+        // for (GameState child : children) 
+        //     System.out.println(child.getLastBox());
+        // System.out.println("Number of children: " + children.size());
         int[] scores = new int[children.size()];
         int alpha = -1000;
         int beta = 1000;
         for (int i = 0; i < children.size(); ++i){
-            long timer2 = System.currentTimeMillis();
-            System.out.println(children.get(i).getLastBox());
+            // long timer2 = System.currentTimeMillis();
+            // System.out.println(children.get(i).getLastBox());
             scores[i] = minimax(1, children.get(i), true, 2, alpha, beta);
-            System.out.println("Score: " + scores[i]);
+            // System.out.println("Score: " + scores[i]);
             // System.out.println("Time taken:");
             // System.out.println((System.currentTimeMillis() - timer2));
         }
@@ -199,13 +213,13 @@ public class AI {
         //     return;
         // }
     
-        System.out.println("Best value: " + bestVal);
+        // System.out.println("Best value: " + bestVal);
         
         // System.out.println("Total time: ");
         // System.out.println(System.currentTimeMillis() - timer);
         GameState nextState = children.get(bestIndex);
         Box nextBox = nextState.getLastBox();
-        System.out.println("Best box: " + nextBox);
+        // System.out.println("Best box: " + nextBox);
         int row = nextBox.getRow();
         int col = nextBox.getCol();
         int nextSide = nextState.getLastSide();
@@ -251,19 +265,11 @@ public class AI {
         }
     }
     public int evaluate(GameState g){
-        // System.out.println("Evaluating gamestate: ");
-        //g.printInfo();
+
         int netScore = g.getPlayerScore() - g.getCompScore();
-        if (g.isLooney()){
-            ArrayList<ArrayList<Box> > longChains = g.getStructures().get("chains");
-            int parity = (Board.SIZE + 1) * (Board.SIZE + 1) + longChains.size() - 1;
-            if (parity % 2 == 0) netScore -= 10;
-            else netScore += 10;
-        }
         Box box = g.getLastBox();
         Box nextBox = g.getAdjacent(box, g.getLastSide());
-        // System.out.println("Last box: " + box);
-        //int side = box.getLastSide();
+
         ArrayList<Box> chain = g.findStructure("chains", box);
         ArrayList<Box> loop = g.findStructure("loops", box);
         ArrayList<Box> chain1 = g.findStructure("chains", nextBox);
@@ -271,12 +277,42 @@ public class AI {
         ArrayList<Box> handout = g.getHandouts();
         ArrayList<Box> length2Chains = g.findStructure("2-chains", box);
         ArrayList<Box> length2ChainsNext = g.findStructure("2-chains", nextBox);
-        if ((handout.indexOf(box) != -1 || handout.indexOf(nextBox) != -1) 
-            && (chain != null || loop != null || chain1 != null || loop1 != null || length2Chains != null || length2ChainsNext != null)){
-            if (g.isPlayerTurn()) netScore += 15;
-            else netScore -= 15; 
+        if (g.isLooney()){
+            ArrayList<ArrayList<Box> > longChains = g.getStructures().get("chains");
+            int parity = (Board.SIZE + 1) * (Board.SIZE + 1) + longChains.size() - 1;
+            if (parity % 2 == 0) netScore -= 10;
+            else netScore += 10;
+            
         }
-        // System.out.println("Score: " + netScore);
+        if (handout.indexOf(box) != -1){
+            if (chain != null){
+                if (g.isPlayerTurn()) netScore += chain.size();
+                else netScore -= chain.size();
+            }
+            if (loop != null){
+                if (g.isPlayerTurn()) netScore += loop.size();
+                else netScore -= loop.size();
+            }
+
+        }
+        if (handout.indexOf(nextBox) != -1){
+            if (chain1 != null){
+                if (g.isPlayerTurn()) netScore += chain1.size();
+                else netScore -= chain1.size();
+            }
+            if (loop1 != null){
+                if (g.isPlayerTurn()) netScore += loop1.size();
+                else netScore -= loop1.size();
+            }
+
+        }
+
+        // if ((handout.indexOf(box) != -1 || handout.indexOf(nextBox) != -1) 
+        //     && (chain != null || loop != null || chain1 != null || loop1 != null || length2Chains != null || length2ChainsNext != null)){
+        //     if (g.isPlayerTurn()) netScore += 10;
+        //     else netScore -= 10; 
+        // }
+
         return netScore;
     }
     public void makeDoubleDealingMove(Box box){
